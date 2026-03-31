@@ -1,13 +1,13 @@
-name: Decompile DonutCore
+name: Decompile DonutCore Fixed
 
 on:
-  workflow_dispatch: # Cho phép nhấn nút chạy thủ công
+  workflow_dispatch:
 
 jobs:
   decompile-job:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Cho phép GitHub Actions đẩy code vào repo
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -19,28 +19,39 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Download CFR Decompiler
+      - name: Install JADX
         run: |
-          wget https://github.com/leibnitz27/cfr/releases/download/0.152/cfr-0.152.jar -O cfr.jar
+          VERSION="1.5.0"
+          wget https://github.com/skylot/jadx/releases/download/v${VERSION}/jadx-${VERSION}.zip
+          unzip jadx-${VERSION}.zip -d jadx_bin
+          chmod +x jadx_bin/bin/jadx
 
-      - name: Decompile JAR File
+      - name: Decompile JAR (Optimized)
         run: |
-          # Tạo thư mục chứa mã nguồn
+          # Tạo thư mục src
           mkdir -p src/main/java
-          # Chạy lệnh dịch ngược (đảm bảo file DonutCore-1.1.3.jar nằm ở thư mục gốc repo)
-          java -jar cfr.jar DonutCore-1.1.3.jar --outputdir ./src/main/java
+          
+          # Chạy JADX với các tham số tối ưu:
+          # --no-res: Bỏ qua dịch ngược tài nguyên (để tránh treo)
+          # --no-imports: Để code gọn hơn (nếu cần)
+          # -r: Giữ nguyên cấu trúc package
+          ./jadx_bin/bin/jadx DonutCore-1.1.3.jar \
+            -d src/main/java \
+            --no-res \
+            --no-debug-info \
+            --comments-level none
 
-      - name: Commit and Push Source Code
+      - name: Commit and Push Source
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Tạo branch mới để chứa mã nguồn đã dịch
-          git checkout -b decompile-source
+          # Tạo branch mới
+          git checkout -b decompile-source-fixed
           
-          # Xóa các file không cần thiết trước khi commit
-          rm cfr.jar
+          # Dọn dẹp các tệp công cụ trước khi push
+          rm -rf jadx_bin jadx-1.5.0.zip
           
           git add .
-          git commit -m "Auto decompile DonutCore to source"
-          git push origin decompile-source --force
+          git commit -m "Fixed decompile DonutCore using JADX"
+          git push origin decompile-source-fixed --force
