@@ -1,7 +1,7 @@
-name: Aris Network - Decompile DonutCore
+name: Aris Network - Decompile Fix
 
 on:
-  workflow_dispatch: # Chạy thủ công bằng nút bấm
+  workflow_dispatch:
 
 jobs:
   decompile:
@@ -19,41 +19,41 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Install JADX (Trình dịch ngược mạnh nhất)
+      - name: Install JADX
         run: |
           VERSION="1.5.0"
           wget https://github.com/skylot/jadx/releases/download/v${VERSION}/jadx-${VERSION}.zip
           unzip jadx-${VERSION}.zip -d jadx_bin
           chmod +x jadx_bin/bin/jadx
 
-      - name: Decompile JAR (Chỉ lấy code chính)
+      - name: Decompile JAR (Lấy chính xác code plugin)
         run: |
           mkdir -p src_output
-          # Lệnh này chỉ lấy gói com.kammoun để tránh bị treo bởi các thư viện đi kèm
+          # Quét cả com.kammoun và các utils liên quan, loại bỏ rác bytebuddy
           ./jadx_bin/bin/jadx DonutCore-1.1.3.jar \
             -d src_output \
             --include-only "com.kammoun.**" \
             --no-res \
-            --no-debug-info
+            --no-debug-info \
+            --show-bad-code
 
-      - name: Create Zip for Download
-        run: |
-          zip -r DonutCore_Source.zip src_output/
-
-      - name: Upload Artifact (Hiện nút tải xuống)
+      - name: Upload Artifact (Nút tải xuống nằm ở đây)
         uses: actions/upload-artifact@v4
         with:
           name: DonutCore-Source-Files
-          path: DonutCore_Source.zip
+          path: src_output/
           retention-days: 7
 
-      - name: Push to Branch (Để xem online)
+      - name: Push to Branch
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -b decompile-result
+          git checkout -b decompile-source-final || git checkout decompile-source-final
+          
+          # Copy code vào root để xem online cho dễ
           cp -r src_output/* .
-          rm -rf jadx_bin jadx-1.5.0.zip DonutCore_Source.zip
+          rm -rf jadx_bin jadx-1.5.0.zip src_output
+          
           git add .
-          git commit -m "Auto decompile DonutCore"
-          git push origin decompile-result --force
+          git commit -m "Fix decompile source" || echo "No changes to commit"
+          git push origin decompile-source-final --force
