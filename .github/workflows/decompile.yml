@@ -1,14 +1,16 @@
-name: Decompile JAR to Source
+name: Decompile DonutCore
 
-on: 
-  workflow_dispatch: # Cho phép bạn bấm nút chạy thủ công
+on:
+  workflow_dispatch: # Cho phép nhấn nút chạy thủ công
 
 jobs:
-  decompile:
+  decompile-job:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Cho phép GitHub Actions đẩy code vào repo
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
@@ -21,26 +23,24 @@ jobs:
         run: |
           wget https://github.com/leibnitz27/cfr/releases/download/0.152/cfr-0.152.jar -O cfr.jar
 
-      - name: Decompile JAR
+      - name: Decompile JAR File
         run: |
-          # Thay 'your-file.jar' bằng tên file của bạn
-          mkdir -p src_decompiled
-          java -jar cfr.jar your-file.jar --outputdir ./src_decompiled
+          # Tạo thư mục chứa mã nguồn
+          mkdir -p src/main/java
+          # Chạy lệnh dịch ngược (đảm bảo file DonutCore-1.1.3.jar nằm ở thư mục gốc repo)
+          java -jar cfr.jar DonutCore-1.1.3.jar --outputdir ./src/main/java
 
-      - name: Upload Source as Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: decompiled-source
-          path: src_decompiled/
-
-      # (Tùy chọn) Đẩy code trực tiếp lên một branch mới tên là 'source-code'
-      - name: Commit and Push Source
+      - name: Commit and Push Source Code
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -b source-code
-          cp -r src_decompiled/* .
-          rm cfr.jar your-file.jar # Dọn dẹp file thừa
+          
+          # Tạo branch mới để chứa mã nguồn đã dịch
+          git checkout -b decompile-source
+          
+          # Xóa các file không cần thiết trước khi commit
+          rm cfr.jar
+          
           git add .
-          git commit -m "Auto decompile jar to src"
-          git push origin source-code --force
+          git commit -m "Auto decompile DonutCore to source"
+          git push origin decompile-source --force
