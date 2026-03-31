@@ -1,4 +1,4 @@
-name: Build and Inject DonutCore
+name: Compile Java to Class
 
 on:
   push:
@@ -19,25 +19,20 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Download Dependencies
+      - name: Download Spigot API
         run: |
           mkdir -p libs
-          # Tải Spigot API để làm thư viện biên dịch (Sửa lỗi thiếu org.bukkit và javax.servlet)
           curl -L -o libs/spigot-api.jar https://hub.spigotmc.org/nexus/content/repositories/snapshots/org/spigotmc/spigot-api/1.20.1-R0.1-SNAPSHOT/spigot-api-1.20.1-R0.1-20230626.084534-19.jar
 
-      - name: Compile and Inject
+      - name: Compile to Class
         run: |
-          mkdir -p staging
-          mkdir -p output
-          unzip -o DonutCore-1.1.3.jar -d staging
-          # Thêm libs/spigot-api.jar vào classpath (-cp) để javac không báo lỗi thiếu package
-          javac -cp "staging:libs/spigot-api.jar" -d staging src/com/hapangama/SunLicenseAPI.java
-          cd staging
-          jar cvf ../output/DonutCore-Fixed.jar .
-          cd ..
+          mkdir -p bin
+          # Giải nén file JAR gốc lấy class làm thư viện đệm (nếu SunLicenseAPI gọi class khác trong DonutCore)
+          unzip -o DonutCore-1.1.3.jar -d temp_lib || true
+          javac -cp "temp_lib:libs/spigot-api.jar" -d bin src/com/hapangama/SunLicenseAPI.java
 
-      - name: Upload Artifact
+      - name: Upload Class File
         uses: actions/upload-artifact@v4
         with:
-          name: DonutCore-Fixed
-          path: output/DonutCore-Fixed.jar
+          name: SunLicenseAPI-Class
+          path: bin/com/hapangama/SunLicenseAPI.class
