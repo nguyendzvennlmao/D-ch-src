@@ -1,0 +1,40 @@
+package com.kammoun.utils.jackson.core;
+
+import com.kammoun.utils.jackson.core.JsonParser;
+import java.util.Iterator;
+
+public interface TreeNode {
+    JsonToken asToken();
+
+    JsonParser.NumberType numberType();
+
+    int size();
+
+    boolean isValueNode();
+
+    boolean isContainerNode();
+
+    boolean isMissingNode();
+
+    boolean isArray();
+
+    boolean isObject();
+
+    TreeNode get(String str);
+
+    TreeNode get(int i);
+
+    TreeNode path(String str);
+
+    TreeNode path(int i);
+
+    Iterator<String> fieldNames();
+
+    TreeNode at(JsonPointer jsonPointer);
+
+    TreeNode at(String str) throws IllegalArgumentException;
+
+    JsonParser traverse();
+
+    JsonParser traverse(ObjectCodec objectCodec);
+}
