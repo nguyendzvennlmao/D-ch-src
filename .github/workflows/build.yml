@@ -14,9 +14,8 @@ jobs:
           distribution: 'temurin'
       - name: Compile
         run: |
-          mkdir -p bin libs
-          curl -L -o libs/spigot.jar https://hub.spigotmc.org/nexus/content/repositories/snapshots/org/spigotmc/spigot-api/1.20.1-R0.1-SNAPSHOT/spigot-api-1.20.1-R0.1-20230626.084534-19.jar
-          javac -cp "DonutCore-1.1.3.jar:libs/spigot.jar" -d bin src/com/hapangama/SunLicenseAPI.java
+          mkdir -p bin
+          javac -cp "DonutCore-1.1.3.jar" -d bin src/com/hapangama/SunLicenseAPI.java
       - uses: actions/upload-artifact@v4
         with:
           name: ClassFile
