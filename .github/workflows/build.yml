@@ -21,19 +21,11 @@ jobs:
 
       - name: Preparation
         run: |
-          mkdir -p libs bin temp_lib
-          # Tải Spigot API làm thư viện nền
+          mkdir -p libs bin
           curl -L -o libs/spigot-api.jar https://hub.spigotmc.org/nexus/content/repositories/snapshots/org/spigotmc/spigot-api/1.20.1-R0.1-SNAPSHOT/spigot-api-1.20.1-R0.1-20230626.084534-19.jar
 
       - name: Compile to Class
         run: |
-          # Kiểm tra xem file gốc có tồn tại không để tránh lỗi logic
-          if [ ! -f "DonutCore-1.1.3.jar" ]; then
-            echo "Error: DonutCore-1.1.3.jar not found in root directory!"
-            exit 1
-          fi
-          
-          # Biên dịch: Dùng cả file JAR gốc và Spigot API làm Classpath
           javac -cp "DonutCore-1.1.3.jar:libs/spigot-api.jar" -d bin src/com/hapangama/SunLicenseAPI.java
 
       - name: Upload Class Files
